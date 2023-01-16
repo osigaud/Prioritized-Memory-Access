@@ -1,0 +1,118 @@
+		-- Abstract
+	Decision making for animals -> evaluate outcome of future choices by choosing relevant xp -> how to choose ?
+	Idea: use nonlocal replay , simulate spatial nav tasks , how much extra reward ?
+	evaluate imminent choices vs gain from progate new info to previous states 
+
+		-- Intro
+	Use xp to maximize reward
+	Separate actions from consequences in space and time , in spatial navigation (seq decision)
+	Animals use previous xp to plan actions, when necessary (not always to avoid loop in behavior)
+	Integrate xp long before decision making
+	Predict decision for future state when having the experience, or make decision using retrieved experience
+	How to choose relevant xp to consider and when ? 
+	Need for new theory, prospective planning, also access memories in different order & times	
+	Place cells in hippocampus represent spatial position -> forward replay predict future movement to goal location
+	Also represent previous locations -> reverse replay, and unrelated places (sleep) -> offline replay
+		=> planning, memory retrieval, consolidation, memory map... => how to put all together to have adaptive behavior + predict which mem are replayed and when?
+	DYNA: planning = learn about values from remembered xp, mix model based and model free controllers
+	Retrieve each xp individually and choose most rewarding in the future
+		-> utility = increase in future reward by choosing this mem 
+			   = "gain term to prioritize predecessors states when unexpected outcome" x  "need term to prioritize states ahead immediately relevant
+	Which xp would be best ? 
+	Test : simulate spatial nav task with generation and use of xp that can be used later
+		-> agent access mem sequentially and produce pattern similar to place cell 
+			-> all patterns of replay during action or rest use xp retrieval and integration
+
+		-- Results
+	Sequential decision taks, maximize expected future reward
+	Value of action = expected discounted future reward from taking it and following subsequent optimal policy
+	Individual step of computation = Bellman backup
+		estimates value of taking action by immediate reward for action + estimated value of successor state => propagates info about reward
+	Use bell back for each action <=> TD learning, similar in brain
+	We also include additional bell back for targets and actions not currently experienced
+		-> reward and successor state from remembered, simulated exp => DYNA framework
+		=> discover consequence missed by TD learning
+	Same if record of event or simulated xp, memory
+	n-step bell back: sample action val by adding expctd immediate reward over x forward steps + any additional value expected from last state
+	Also propagate value info backwards by chain succ 1-step backup in reverse direction
+	Optimal scheduling of individual step of val computation: derive instant utility of every individual bell back
+		-> individual backup can improve choice policy at target state (due to changing action val)
+	For gain, early visit more important than late (temporal discount) -> priority of current state
+	backup utility depend on gain/need terms -> no effect on bhavior = 0 utility even if visited, or if never visited again even if it will improve
+		-> computed separately for each backup 
+			=> don't consider poss of additional gain for another backup
+	Simulate spatial nav task: grid, states = locations, actions = N E S W, 1-d and 2-d grid
+		-> learn which action lead to reward by propag value info bell back
+		(use of noise for continuous learning)
+	When agent pause (before starting or after reward), it accesses nonlocal memories, sequentially + order of utility -> repeating this propagate value info along trajectories never visited
+		-> role of hippocampus
+
+	Prioritized memory access accelerates learning in spatial nav task => reduced nb of needed steps
+	Prediction error -> large gain for subsequent states, favors reverse backwards propagation
+	When need term larger than gain, sequences start at agent loc and goto reward location
+		-> forward seq of n steps , +1 step extend to n+1-step backup with info of all prec action
+	Classify individual backups
+		-> forward = backed-up action followed by backup in state reached by action
+		-> reverse = state of a backup is outcome of following backed up action
+			Also unclassified backups
+	Observations: replay is forward before a run(thx to need term) , reverse after a run(gain term) ; very rarely opposite
+
+Need
+	Need for bias on replay
+		-> on current position (high need)
+		-> on reward sites (high gain)
+	Hippocampus has tendency to put current location at beginning of reverse or forward sequence (not forced)
+	Backup also tendency to concentrate near reward loc => proof of replay involvement for planning future routes (no initiation bias because random init locs)
+	Remote replay
+		-> represent rewarding areas in comparison to similar but unrewarding areas - simu with T-maze
+	Asymmetric effect of prediction (pas tj très clair)
+		-> linear track; reverse replay increased if reward increases and vice versa
+		-> rate of forward replay doesn't change
+			=> planning and learning are variants of same operation w/ baclups to propagate rew info space/time
+	Small gain for learning if best actions is better than expected; large if worse than other
+	Also changes in degree of preference
+	If best action, new reward info backward propagated only if reward increase or decreases worse than alternatives
+	Propagating a negative pred error doesnt help if alternatives are worse, but good else
+
+	Effects of familiarity
+	learn a task well -> less prediction error
+	When behavior is more precise, need term more focused in learned routes
+	More time an animal spends in a place, more time corresponding place cell is activated during sleep
+	More replay in new environments
+	Need and gain affected by an exp in env
+	Only gain affected  by replay (during rest)
+	Significant replay events more during first trials
+		-> decrease in forward/reverse replay
+
+	Simulation during replay of which other action to take -> new unexplored paths
+	Awake replay needed for associating events
+
+
+
+
+		--- Discussion
+	Multiple place cell in hippocampa = different instances of same evaluation operation
+		-> difference represents difference of circumstances
+	Place cell activity supports learning and decision making
+	Experience replays has multiple functions in different context 
+		-> learning, planning, retrieve memory of place, system consolidation
+	Replay can be used to learn transition model and expected outcome instead of reward only
+	long-run outcome representation = successor representation (SR) - computing action values, temporally extended cognitive map
+	Details of decision var computation control what choices are made (e.g. consider an action's consequences)
+	Model free vs model based => representets issues like habits
+	large prediction errors should backup and propagate unexpected info to predecessors states
+		-> add need term = prioritize certain predecessors for backups
+	Replay-based doesn't differenciate remembered or simulated experiences
+
+
+		
+
+		--- Methods
+	This part lists useful equations
+	Maximize discounted return = reward * discount factor
+	(4) expected value of backup to prioritize Bellman backup
+
+	Simulate on grids, linear and circular - unit reward w/ noise - 50ep simulation, random start location
+	Allow 20 planning steps at beginning and end of episode - use gain to force planning to be used
+	
+	
